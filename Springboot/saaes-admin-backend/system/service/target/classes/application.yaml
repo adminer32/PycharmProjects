@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: system
+  profiles:
+    active: dev
+
+sys:
+  auth:
+    internalSecret: saaes-secret-key

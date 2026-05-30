@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.service.classes.mapper.ClassMapper">
+
+    <!-- 统计班级学生人数 -->
+    <select id="countClassStudents" resultType="int">
+        SELECT COUNT(*)
+        FROM student_profile
+        WHERE class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+    </select>
+
+</mapper>

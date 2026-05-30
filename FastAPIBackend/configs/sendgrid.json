@@ -1,0 +1,8 @@
+{
+    "account": "apikey",
+    "api_key": "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",
+    "from_name": "翎翼毽球教学平台",
+    "from_email": "aiidecn@darkdomain.space",
+    "subject": "[AIIDECN] 注册确认邮件",
+    "activation_link": "http://127.0.0.1:5010/student/register?vtoken={vtoken}"
+}

@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.service.analysis.mapper.AnalysisMapper">
+
+    <select id="getClassAvgStudyDuration" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(sc.duration) / 3600.0 / COUNT(DISTINCT sc.student_id), 0)
+        FROM student_checkin sc
+        JOIN student_profile sp ON sc.student_id = sp.id
+        WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+    </select>
+
+    <select id="getClassHomeworkAvg" resultType="java.math.BigDecimal">
+        SELECT COALESCE(AVG(hs.score), 0)
+        FROM homework_scores hs
+        JOIN student_profile sp ON hs.student_id = sp.id
+        WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+    </select>
+
+    <select id="getClassAvgSkillPoints" resultType="java.math.BigDecimal">
+        SELECT COALESCE(AVG(points), 0)
+        FROM (
+            SELECT ss.student_id, COUNT(*) as points
+            FROM shuttlecock_skills ss
+            JOIN student_profile sp ON ss.student_id = sp.id
+            WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci AND ss.personal_score >= 60
+            GROUP BY ss.student_id
+        ) as skill_counts
+    </select>
+
+    <select id="getStudentsByClass" resultType="java.util.Map">
+        SELECT 
+            sp.id as id,
+            sp.student_id as studentId,
+            sp.real_name as name,
+            sp.avatar as avatar
+        FROM student_profile sp
+        WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+    </select>
+
+    <select id="getClassDurationTrend" resultType="com.system.service.analysis.vo.AnalysisVO$TrendData">
+        SELECT 
+            DATE_FORMAT(checkin_date, '%m-%d') as label,
+            ROUND(SUM(duration) / 3600.0 / COUNT(DISTINCT sc.student_id), 1) as value
+        FROM student_checkin sc
+        JOIN student_profile sp ON sc.student_id = sp.id
+        WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci 
+          AND checkin_date >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
+        GROUP BY checkin_date
+        ORDER BY checkin_date ASC
+    </select>
+
+    <select id="getClassScoreTrend" resultType="com.system.service.analysis.vo.AnalysisVO$TrendData">
+        SELECT 
+            DATE_FORMAT(homework_date, '%m-%d') as label, 
+            AVG(score) as value
+        FROM homework_scores hs
+        JOIN student_profile sp ON hs.student_id = sp.id
+        WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+          AND homework_date >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
+        GROUP BY homework_date
+        ORDER BY homework_date ASC
+    </select>
+
+    <select id="getClassRadarData" resultType="com.system.service.analysis.vo.AnalysisVO$SkillScore">
+        SELECT 
+            skill_type as skillType,
+            NULL as personalScore,
+            AVG(personal_score) as classAvgScore
+        FROM shuttlecock_skills ss
+        JOIN student_profile sp ON ss.student_id = sp.id
+        WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+        GROUP BY skill_type
+    </select>
+
+    <select id="getClassCheckinCountsPerDay" resultType="java.util.Map">
+        SELECT 
+            DAY(checkin_date) as day,
+            COUNT(DISTINCT sc.student_id) as count
+        FROM student_checkin sc
+        JOIN student_profile sp ON sc.student_id = sp.id
+        WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+          AND DATE_FORMAT(checkin_date, '%Y-%m') = #{yearMonth}
+        GROUP BY day
+    </select>
+
+    <select id="getTotalClassStudents" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM student_profile
+        WHERE class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+    </select>
+
+    <select id="getClassCheckinCountInPeriod" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM student_checkin sc
+        JOIN student_profile sp ON sc.student_id = sp.id
+        WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+          AND checkin_date BETWEEN #{startDate} AND #{endDate}
+    </select>
+
+    <select id="getUniqueCheckinStudentsInPeriod" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT sc.student_id)
+        FROM student_checkin sc
+        JOIN student_profile sp ON sc.student_id = sp.id
+        WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+          AND checkin_date BETWEEN #{startDate} AND #{endDate}
+    </select>
+
+    <select id="getClassHomeworkScoreDistribution" resultType="java.util.Map">
+        SELECT 
+            SUM(CASE WHEN avg_score >= 90 THEN 1 ELSE 0 END) as 'excellent',
+            SUM(CASE WHEN avg_score >= 75 AND avg_score &lt; 90 THEN 1 ELSE 0 END) as 'good',
+            SUM(CASE WHEN avg_score >= 60 AND avg_score &lt; 75 THEN 1 ELSE 0 END) as 'pass',
+            SUM(CASE WHEN avg_score &lt; 60 THEN 1 ELSE 0 END) as 'fail'
+        FROM (
+            SELECT hs.student_id, AVG(hs.score) as avg_score
+            FROM homework_scores hs
+            JOIN student_profile sp ON hs.student_id = sp.id
+            WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+            GROUP BY hs.student_id
+        ) as student_avg
+    </select>
+
+
+    <select id="getStudentStudyDuration" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(duration) / 3600.0, 0)
+        FROM student_checkin
+        WHERE student_id = #{studentId}
+    </select>
+
+    <select id="getStudentHomeworkAvg" resultType="java.math.BigDecimal">
+        SELECT COALESCE(AVG(score), 0)
+        FROM homework_scores
+        WHERE student_id = #{studentId}
+    </select>
+
+    <select id="getStudentHitSkillPoints" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM shuttlecock_skills
+        WHERE student_id = #{studentId} AND personal_score >= 60
+    </select>
+
+    <select id="getStudentDurationTrend" resultType="com.system.service.analysis.vo.AnalysisVO$TrendData">
+        SELECT 
+            DATE_FORMAT(checkin_date, '%m-%d') as label, 
+            ROUND(SUM(duration) / 3600.0, 1) as value
+        FROM student_checkin
+        WHERE student_id = #{studentId} AND checkin_date >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
+        GROUP BY checkin_date
+        ORDER BY checkin_date ASC
+    </select>
+
+    <select id="getStudentScoreTrend" resultType="com.system.service.analysis.vo.AnalysisVO$TrendData">
+        SELECT 
+            DATE_FORMAT(homework_date, '%m-%d') as label, 
+            AVG(score) as value
+        FROM homework_scores
+        WHERE student_id = #{studentId} AND homework_date >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
+        GROUP BY homework_date
+        ORDER BY homework_date ASC
+    </select>
+
+    <select id="getStudentRadarData" resultType="com.system.service.analysis.vo.AnalysisVO$SkillScore">
+        SELECT 
+            skill_type as skillType,
+            personal_score as personalScore,
+            class_avg_score as classAvgScore
+        FROM shuttlecock_skills 
+        WHERE student_id = #{studentId}
+    </select>
+
+    <select id="getStudentActionAnalysis" resultType="com.system.service.analysis.vo.AnalysisVO$ActionAbility">
+        SELECT 
+            action_type as name,
+            current_score as avg,
+            history_avg_score as historyAvg,
+            recent_scores as recentScores,
+            feedback as feedback
+        FROM action_scores
+        WHERE student_id = #{studentId}
+    </select>
+
+    <select id="getStudentCheckindays" resultType="java.lang.Integer">
+        SELECT DAY(checkin_date)
+        FROM student_checkin
+        WHERE student_id = #{studentId} AND DATE_FORMAT(checkin_date, '%Y-%m') = #{yearMonth}
+    </select>
+
+    <select id="getStudentCheckinCountInPeriod" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT checkin_date)
+        FROM student_checkin
+        WHERE student_id = #{studentId} AND checkin_date BETWEEN #{startDate} AND #{endDate}
+    </select>
+
+    <select id="getClassWeeklyLearningTrend" resultType="com.system.service.analysis.vo.AnalysisVO$TrendData">
+        SELECT 
+            CONCAT('第', ROW_NUMBER() OVER (ORDER BY MIN(sl.start_learning_time)), '周') as label,
+            ROUND(SUM(sl.learning_hours), 1) as value,
+            DATE_FORMAT(MIN(sl.start_learning_time), '%m-%d') as weekStart,
+            DATE_FORMAT(MAX(sl.start_learning_time), '%m-%d') as weekEnd
+        FROM student_learning sl
+        JOIN student_profile sp ON sl.student_id = sp.id
+        WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+          AND sl.start_learning_time >= DATE_SUB(CURDATE(), INTERVAL 4 WEEK)
+        GROUP BY YEAR(sl.start_learning_time), WEEK(sl.start_learning_time, 3)
+        ORDER BY MIN(sl.start_learning_time) ASC
+        LIMIT 4
+    </select>
+
+    <select id="getStudentWeeklyLearningTrend" resultType="com.system.service.analysis.vo.AnalysisVO$TrendData">
+        SELECT 
+            CONCAT('第', ROW_NUMBER() OVER (ORDER BY MIN(start_learning_time)), '周') as label,
+            ROUND(SUM(learning_hours), 1) as value,
+            DATE_FORMAT(MIN(start_learning_time), '%m-%d') as weekStart,
+            DATE_FORMAT(MAX(start_learning_time), '%m-%d') as weekEnd
+        FROM student_learning
+        WHERE student_id = #{studentId}
+          AND start_learning_time >= DATE_SUB(CURDATE(), INTERVAL 4 WEEK)
+        GROUP BY YEAR(start_learning_time), WEEK(start_learning_time, 3)
+        ORDER BY MIN(start_learning_time) ASC
+        LIMIT 4
+    </select>
+
+    <select id="getQualifiedCheckinStudents" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM (
+            SELECT sc.student_id, COUNT(DISTINCT sc.checkin_date) as day_count
+            FROM student_checkin sc
+            JOIN student_profile sp ON sc.student_id = sp.id
+            WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+              AND sc.checkin_date BETWEEN #{startDate} AND #{endDate}
+            GROUP BY sc.student_id
+            HAVING day_count &gt;= #{threshold}
+        ) qualified
+    </select>
+
+    <select id="getClassName" resultType="java.util.Map">
+        SELECT name FROM `class` WHERE id = #{classId} LIMIT 1
+    </select>
+
+    <select id="getTopStudyStudent" resultType="java.util.Map">
+        SELECT 
+            sp.real_name as name,
+            ROUND(SUM(sc.duration) / 3600.0, 1) as totalHours
+        FROM student_checkin sc
+        JOIN student_profile sp ON sc.student_id = sp.id
+        WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+          AND DATE_FORMAT(sc.checkin_date, '%Y-%m') = #{yearMonth}
+        GROUP BY sc.student_id, sp.real_name
+        ORDER BY totalHours DESC
+        LIMIT 1
+    </select>
+
+    <select id="getTopCheckinStudent" resultType="java.util.Map">
+        SELECT 
+            sp.real_name as name,
+            COUNT(DISTINCT sc.checkin_date) as days
+        FROM student_checkin sc
+        JOIN student_profile sp ON sc.student_id = sp.id
+        WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+          AND DATE_FORMAT(sc.checkin_date, '%Y-%m') = #{yearMonth}
+        GROUP BY sc.student_id, sp.real_name
+        ORDER BY days DESC
+        LIMIT 1
+    </select>
+
+    <select id="getTopContinuousCheckinStudent" resultType="java.util.Map">
+        SELECT 
+            sp.real_name as name,
+            MAX(t.continuous_days) as continuousDays
+        FROM (
+            SELECT 
+                sc.student_id,
+                @row_num := IF(@prev_student = sc.student_id, 
+                    CASE WHEN DATEDIFF(sc.checkin_date, @prev_date) = 1 THEN @row_num + 1 ELSE 1 END,
+                    1
+                ) AS continuous_days,
+                @prev_student := sc.student_id,
+                @prev_date := sc.checkin_date
+            FROM student_checkin sc, (SELECT @prev_student := '', @prev_date := NULL, @row_num := 0) r
+            WHERE DATE_FORMAT(sc.checkin_date, '%Y-%m') = #{yearMonth}
+            ORDER BY sc.student_id, sc.checkin_date ASC
+        ) t
+        JOIN student_profile sp ON t.student_id = sp.id
+        WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+        GROUP BY t.student_id, sp.real_name
+        ORDER BY continuousDays DESC
+        LIMIT 1
+    </select>
+
+    <select id="getStudentActionScores" resultType="java.util.Map">
+        SELECT 
+            skill_type as actionType,
+            personal_score as currentScore,
+            class_avg_score as historyAvgScore
+        FROM shuttlecock_skills
+        WHERE student_id = #{studentId}
+    </select>
+
+    <select id="getClassTotalCheckinDays" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM student_checkin sc
+        JOIN student_profile sp ON sc.student_id = sp.id
+        WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+          AND DATE_FORMAT(sc.checkin_date, '%Y-%m') = #{yearMonth}
+    </select>
+
+</mapper>

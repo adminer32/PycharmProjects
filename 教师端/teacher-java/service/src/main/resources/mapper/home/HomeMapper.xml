@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.service.home.mapper.HomeMapper">
+
+    <!-- 班级概览：学生总数 + 今日作业提交 + 今日打卡 -->
+    <select id="getClassOverview" resultType="java.util.Map">
+        SELECT 
+            (SELECT COUNT(*) FROM student_profile WHERE class_id = #{classId}) as totalStudents,
+            (SELECT COUNT(DISTINCT hs.student_id) 
+             FROM teacher_homework_submission hs 
+             JOIN student_profile sp ON hs.student_id = sp.id 
+             WHERE sp.class_id = #{classId}
+               AND DATE(hs.created_at) = CURDATE()) as homeworkSubmitted,
+            (SELECT COUNT(*) FROM student_profile WHERE class_id = #{classId}) as homeworkTotal,
+            (SELECT COUNT(DISTINCT sc.student_id) 
+             FROM student_checkin sc 
+             JOIN student_profile sp ON sc.student_id = sp.id 
+             WHERE sp.class_id = #{classId}
+               AND sc.checkin_date = CURDATE()) as checkinSubmitted,
+            (SELECT COUNT(*) FROM student_profile WHERE class_id = #{classId}) as checkinTotal
+    </select>
+
+    <!-- 待批改作业数：当前班级有提交但无反馈或反馈未完成 -->
+    <select id="getPendingHomeworkCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM teacher_homework_submission hs
+        JOIN student_profile sp ON hs.student_id = sp.id
+        LEFT JOIN teacher_homework_feedback hf ON hs.id = hf.submission_id
+        WHERE sp.class_id = #{classId}
+          AND (hf.id IS NULL OR hf.status = 0)
+    </select>
+
+    <!-- 待审批训练计划数 - 使用实际的review_status字段，按学生去重 -->
+    <select id="getPendingTrainingPlanCount" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT student_id)
+        FROM ai_training_plans
+        WHERE class_id = CAST(#{classId} AS UNSIGNED) AND review_status = '待定'
+    </select>
+
+    <!-- 通知列表 - 使用真实的teacher_class_notifications表 -->
+    <select id="getNotices" resultType="com.system.service.home.vo.HomeVO$Notice">
+        SELECT
+            id,
+            title,
+            content,
+            type as notificationType,
+            (type = 'urgent') as isImportant,
+            0 as readCount,
+            (SELECT COUNT(*) FROM student_profile WHERE class_id = CAST(tcn.class_id AS CHAR) COLLATE utf8mb4_unicode_ci) as totalStudents,
+            DATE_FORMAT(tcn.created_at, '%Y-%m-%d %H:%i') as time
+        FROM teacher_class_notifications tcn
+        WHERE tcn.class_id = CAST(#{classId} AS UNSIGNED)
+        ORDER BY
+            CASE WHEN type = 'urgent' THEN 0 ELSE 1 END,
+            tcn.created_at DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 通知总数 -->
+    <select id="getNoticeCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM teacher_class_notifications
+        WHERE class_id = CAST(#{classId} AS UNSIGNED)
+    </select>
+
+    <!-- 新增通知 -->
+    <insert id="insertNotice">
+        INSERT INTO teacher_class_notifications (class_id, teacher_id, title, content, type, created_at)
+        VALUES (#{classId}, #{teacherId}, #{title}, #{content}, #{type}, NOW())
+    </insert>
+
+    <!-- 更新通知 -->
+    <update id="updateNotice">
+        UPDATE teacher_class_notifications
+        SET title = #{title}, content = #{content}, type = #{type}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除通知 -->
+    <delete id="deleteNotice">
+        DELETE FROM teacher_class_notifications WHERE id = #{id}
+    </delete>
+
+    <!-- 获取最后插入ID -->
+    <select id="getLastInsertId" resultType="java.lang.Long">
+        SELECT LAST_INSERT_ID()
+    </select>
+
+    <!-- 根据ID获取通知 -->
+    <select id="getNoticeById" resultType="com.system.service.home.vo.HomeVO$Notice">
+        SELECT
+            id,
+            title,
+            content,
+            type as notificationType,
+            (type = 'urgent') as isImportant,
+            0 as readCount,
+            (SELECT COUNT(*) FROM student_profile WHERE class_id = CAST(tcn.class_id AS CHAR) COLLATE utf8mb4_unicode_ci) as totalStudents,
+            DATE_FORMAT(tcn.created_at, '%Y-%m-%d %H:%i') as time
+        FROM teacher_class_notifications tcn
+        WHERE tcn.id = #{id}
+    </select>
+
+</mapper>

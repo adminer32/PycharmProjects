@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.service.ai.mapper.AiTeachingAdviceMapper">
+
+    <select id="selectByTarget" resultType="com.system.service.ai.vo.AiTeachingAdvice">
+        SELECT id,
+               target_type as targetType,
+               target_id as targetId,
+               priority_level as priorityLevel,
+               title,
+               description,
+               suggestions,
+               week_start_date as weekStartDate,
+               created_at as createdAt
+        FROM ai_teaching_advice
+        WHERE target_type = #{targetType}
+          AND target_id = #{targetId}
+        ORDER BY FIELD(priority_level, 'HIGH', 'MEDIUM', 'LOW')
+    </select>
+
+    <delete id="deleteByTarget">
+        DELETE FROM ai_teaching_advice
+        WHERE target_type = #{targetType}
+          AND target_id = #{targetId}
+    </delete>
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO ai_teaching_advice (
+            target_type, target_id, priority_level, title,
+            description, suggestions, week_start_date
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.targetType}, #{item.targetId}, #{item.priorityLevel},
+                #{item.title}, #{item.description},
+                #{item.suggestions}, CURDATE()
+            )
+        </foreach>
+    </insert>
+
+</mapper>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saaes.system.mapper.VisualizationMapper">
+
+    <select id="getDailyAverageScores" resultType="com.saaes.system.client.dto.DailyScoreAvgDTO">
+        SELECT
+            DATE(create_time) AS analysis_date,
+            ROUND(AVG(overall_score), 2) AS avg_overall_score,
+            ROUND(AVG(stability_score), 2) AS avg_stability_score,
+            ROUND(AVG(fluency_score), 2) AS avg_fluency_score,
+            ROUND(AVG(proficiency_score), 2) AS avg_proficiency_score
+        FROM ai_analysis_result
+        WHERE
+            create_by = #{createBy}
+          AND create_time >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        GROUP BY DATE(create_time)
+        ORDER BY analysis_date
+    </select>
+
+    <resultMap id="TypeCountMap" type="com.saaes.system.client.dto.TypeCountDTO">
+        <result column="type" property="type"/>
+        <result column="total_count" property="totalCount"/>
+        <result column="last_30_days_count" property="last30DaysCount"/>
+    </resultMap>
+
+    <select id="getTypeCountByCreateBy" resultMap="TypeCountMap">
+        SELECT
+            type,
+            COUNT(*) AS total_count,
+            COUNT(CASE WHEN send_time >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) AS last_30_days_count
+        FROM ai_content_info
+        WHERE create_by = #{createBy}
+          AND type IN ('card', 'text')
+        GROUP BY type
+    </select>
+
+
+    <!-- 查询 card 相关数量 -->
+    <select id="getCardStatsByCreateBy" resultType="map">
+        SELECT
+            COUNT(*) AS totalCount,
+            COUNT(CASE WHEN send_time >= CURDATE() THEN 1 END) AS todayCount,
+            COUNT(CASE WHEN send_time >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) AS last30DaysCount
+        FROM ai_content_info
+        WHERE create_by = #{createBy}
+          AND type = 'card'
+    </select>
+
+    <!-- 查询 note 分析数量 -->
+    <select id="getNoteStatsByCreateBy" resultType="map">
+        SELECT
+            COUNT(*) AS totalCount,
+            COUNT(CASE WHEN a.create_time >= CURDATE() THEN 1 END) AS todayCount,
+            COUNT(CASE WHEN a.create_time >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) AS last30DaysCount
+        FROM ai_note_info a
+                 LEFT JOIN sys_file f ON a.video_id = f.id
+        WHERE a.deleted IS FALSE
+          AND (a.course_id IS NULL OR a.course_id = '')
+          AND a.title IS NOT NULL AND a.title != ''
+      AND a.create_by = #{createBy}
+    </select>
+
+
+</mapper>

@@ -1,0 +1,107 @@
+package com.saaes.system.service;
+
+import com.saaes.common.core.service.BaseServiceImpl;
+import com.saaes.common.core.utils.CommonUtil;
+import com.saaes.common.core.web.MyException;
+import com.saaes.common.core.web.PageQuery;
+import com.saaes.common.core.web.PageResult;
+import com.saaes.system.client.entity.SysMenu;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 系统菜单service
+ */
+@Service
+@Slf4j
+public class SysMenuService extends BaseServiceImpl {
+
+    /**
+     * 系统菜单查询
+     */
+    @Transactional(readOnly = true)
+    public PageResult<SysMenu> query(PageQuery<Map<String, Object>> pageQuery) {
+        Map<String, Object> param = pageQuery.getParam();
+        if (param == null) param = new HashMap<>();
+        String flag = CommonUtil.getString(param.get("flag"));
+        String sql = "select * from sys_menu where deleted is false ";
+        if (CommonUtil.isNotEmpty(param.get("title"))) {
+            sql += " and title like '%' ? '%'";
+            pageQuery.addArg(param.get("title"));
+        }
+        if (CommonUtil.isNotEmpty(param.get("enabled"))) {
+            sql += " and enabled = ?";
+            pageQuery.addArg(param.get("enabled"));
+        }
+        if (CommonUtil.isNotEmpty(param.get("createTimeStart"))) {
+            sql += " and create_time >= ?";
+            pageQuery.addArg(param.get("createTimeStart"));
+        }
+        if (CommonUtil.isNotEmpty(param.get("createTimeEnd"))) {
+            sql += " and date_sub(create_time, interval 1 day) <= ?";
+            pageQuery.addArg(param.get("createTimeEnd"));
+        }
+        if (flag.equals("selectParentMenu")) {
+            sql += " and type in ('dir', 'menu')";
+        }
+        sql += " order by `order` asc";
+        pageQuery.setBaseSql(sql);
+        return baseJdbcDao.query(SysMenu.class, pageQuery);
+    }
+
+    /**
+     * 切换菜单字段值
+     */
+    @Transactional
+    public void switchMenuProp(Map<String, Object> param) {
+        Object id = param.get("id");
+        Object prop = param.get("prop");
+        Object value = param.get("value");
+        SysMenu menu = baseJdbcDao.findById(SysMenu.class, (Serializable) id);
+        if ("cache".equals(prop)) menu.setCache((Boolean) value);
+        else if ("enabled".equals(prop)) menu.setEnabled((Boolean) value);
+        else throw new MyException("参数异常，检查后重试！");
+        baseJdbcDao.update(menu);
+    }
+
+
+    @Transactional
+    public SysMenu save(SysMenu sysMenu) {
+        String sql = "select count(1) from sys_menu where deleted is false and name = ?";
+        if (sysMenu.getId() != null) {
+            sql += " and id <> %s ".formatted(sysMenu.getId());
+        }
+        Integer count = primaryJdbcTemplate.queryForObject(sql, Integer.class, sysMenu.getName());
+        if (count > 0) throw new MyException("菜单name：%s重复！".formatted(sysMenu.getName()));
+        if (sysMenu.getId() == null) baseJdbcDao.insert(sysMenu);
+        else baseJdbcDao.update(sysMenu);
+        return sysMenu;
+    }
+
+    /**
+     * id获取菜单详情
+     */
+    @Transactional(readOnly = true)
+    public SysMenu getById(Serializable id) {
+        return baseJdbcDao.findById(SysMenu.class, id);
+    }
+
+    /**
+     * ids批量删除菜单
+     */
+    @Transactional
+    public void del(List<Integer> ids) {
+        log.info("批量删除菜单--");
+        String sql = "update sys_menu set deleted = 1 where id in (:ids)";
+        Map<String, Object> paramMap = new HashMap<>(){{
+            put("ids", ids);
+        }};
+        primaryNPJdbcTemplate.update(sql, paramMap);
+    }
+}

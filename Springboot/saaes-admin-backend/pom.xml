@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.4.4</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.saaes</groupId>
+    <artifactId>saaes-backend</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <name>saaes-backend</name>
+    <description>毽球动作自动化评估系统-后端</description>
+    <properties>
+        <java.version>21</java.version>
+        <saaes-admin.version>0.0.1-SNAPSHOT</saaes-admin.version>
+        <spring-cloud-dependencies.version>2024.0.0</spring-cloud-dependencies.version>
+        <spring-cloud-alibaba.version>2023.0.1.2</spring-cloud-alibaba.version>
+        <springdoc-openapi-starter-webmvc-ui.version>2.8.3</springdoc-openapi-starter-webmvc-ui.version>
+        <guava.version>33.4.0-jre</guava.version>
+        <sa-token-spring-boot3-starter.version>1.39.0</sa-token-spring-boot3-starter.version>
+        <hutool-version>5.8.35</hutool-version>
+        <weixin-java-version>4.7.0</weixin-java-version>
+        <javacv-version>1.5.11</javacv-version>
+        <fastjson2-version>2.0.54</fastjson2-version>
+    </properties>
+
+    <modules>
+        <module>common</module>
+        <module>system</module>
+    </modules>
+
+    <dependencies>
+        <!-- lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <!-- 核心starter -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <!-- 热部署 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+    <!--    定义依赖的默认版本    -->
+    <dependencyManagement>
+        <!-- Spring-Cloud-Alibaba -->
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud-dependencies.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${spring-cloud-alibaba.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!--     swagger API文档        -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc-openapi-starter-webmvc-ui.version}</version>
+            </dependency>
+            <!-- Google Java工具库 -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.saaes</groupId>
+                <artifactId>common-core</artifactId>
+                <version>${saaes-admin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.saaes</groupId>
+                <artifactId>common-jdbc</artifactId>
+                <version>${saaes-admin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.saaes</groupId>
+                <artifactId>common-swagger</artifactId>
+                <version>${saaes-admin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.saaes</groupId>
+                <artifactId>system-client</artifactId>
+                <version>${saaes-admin.version}</version>
+            </dependency>
+            <!-- 权限认证 -->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-spring-boot3-starter</artifactId>
+                <version>${sa-token-spring-boot3-starter.version}</version>
+            </dependency>
+            <!-- Sa-Token 整合 Redis （使用 jackson 序列化方式） -->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-redis-jackson</artifactId>
+                <version>${sa-token-spring-boot3-starter.version}</version>
+            </dependency>
+            <!-- HTTP 请求工具 -->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-http</artifactId>
+                <version>${hutool-version}</version>
+            </dependency>
+            <!-- 生成验证码 -->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-captcha</artifactId>
+                <version>${hutool-version}</version>
+            </dependency>
+            <!--            &lt;!&ndash; 微信小程序 SDK &ndash;&gt;-->
+            <!--            <dependency>-->
+            <!--                <groupId>com.github.binarywang</groupId>-->
+            <!--                <artifactId>weixin-java-miniapp</artifactId>-->
+            <!--                <version>${weixin-java-version}</version>-->
+            <!--            </dependency>-->
+            <!-- 计算机视觉（OpenCV） -->
+            <dependency>
+                <groupId>org.bytedeco</groupId>
+                <artifactId>javacv-platform</artifactId>
+                <version>${javacv-version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/com.alibaba.fastjson2/fastjson2 JSON解析-->
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
+                <version>${fastjson2-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>3.5.11</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.aliyun</groupId>
+                <artifactId>aliyun-java-sdk-core</artifactId>
+                <version>4.7.3</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>dashscope-sdk-java</artifactId>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-simple</artifactId>
+                    </exclusion>
+                </exclusions>
+                <version>2.19.1</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <distributionManagement>
+        <!--    如需发布到仓库，这里配置选项    -->
+    </distributionManagement>
+
+    <build>
+        <!--  全局通用配置    -->
+        <!--  参考文档 https://docs.spring.io/spring-boot/docs/3.1.1/maven-plugin/reference/htmlsingle/#packaging      -->
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <configuration>
+                        <image>
+                            <name>saaes-admin-${project.artifactId}</name>
+                            <env>
+                                <!-- jdk版本-->
+                                <BP_JVM_VERSION>21</BP_JVM_VERSION>
+                            </env>
+                            <!-- 镜像打标签 -->
+                            <tags>
+                                <!-- 示例： 镜像库地址/镜像名称:标签  -->
+                                <!-- <tag>localhost:5000/${project.artifactId}:latest</tag>-->
+                            </tags>
+                            <!-- 如果要推送到镜像库，设为true -->
+                            <!-- <publish>true</publish> -->
+                        </image>
+                        <docker>
+                            <!-- 镜像库账号密码 -->
+                            <publishRegistry>
+                                <username>user</username>
+                                <password>secret</password>
+                            </publishRegistry>
+                        </docker>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>repackage</goal>
+                            </goals>
+                        </execution>
+                        <!--                        <execution>-->
+                        <!--                            <id>build-image</id>-->
+                        <!--                            <goals>-->
+                        <!--                                <goal>build-image</goal>-->
+                        <!--                            </goals>-->
+                        <!--                        </execution>-->
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>

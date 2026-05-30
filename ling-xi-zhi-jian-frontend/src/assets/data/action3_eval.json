@@ -1,0 +1,86 @@
+{
+  "status": "success",
+  "metrics": {
+    "hip_angle_error": 0.0,
+    "knee_angle_error": 0.4255774372219463,
+    "ankle_angle_error": 0.18216958491288437,
+    "foot_height_error": 0.002372872454545316,
+    "mpjpe": 2.896233977283017e-17,
+    "gt_peak_frame": 30,
+    "pred_peak_frame": 1,
+    "standards": {
+      "hip_angle": 0.0,
+      "knee_angle": 34.22319907688837,
+      "ankle_angle": 95.49651434273424,
+      "foot_height": 0.7766096025454545,
+      "peak_frame": 30
+    }
+  },
+  "pred_peak_frame": 1,
+  "gt_peak_frame": 30,
+  "pred_length": 7,
+  "gt_length": 46,
+  "action_type": "绷踢",
+  "side": "left",
+  "student_info": {
+    "student_id": "学生003",
+    "action": "绷踢",
+    "original_filename": "学生_绷踢.mp4",
+    "source": "api",
+    "callback_url": null,
+    "action_id": 3,
+    "side": "left",
+    "start_frame": 126,
+    "end_frame": 132,
+    "peak_frame": 128
+  },
+  "feedback": {
+    "综合评分": 85,
+    "action_type": "绷踢",
+    "side": "left",
+    "metrics": {
+      "hip_angle_error": 0.0,
+      "knee_angle_error": 0.4,
+      "ankle_angle_error": 0.2,
+      "foot_height_error": 0.2
+    },
+    "feedback_detail": {
+      "髋关节": {
+        "评分": 87,
+        "标准值": "0°",
+        "实际值": "1°",
+        "误差": "+1°",
+        "描述": "髋关节角度基本标准",
+        "建议": null
+      },
+      "膝关节": {
+        "评分": 84,
+        "标准值": "34°",
+        "实际值": "36°",
+        "误差": "+2°",
+        "描述": "膝关节略有偏差",
+        "建议": null
+      },
+      "踝关节": {
+        "评分": 86,
+        "标准值": "95°",
+        "实际值": "97°",
+        "误差": "+2°",
+        "描述": "踝关节基本到位",
+        "建议": null
+      },
+      "抬脚高度": {
+        "评分": 83,
+        "标准值": "0.78m",
+        "实际值": "0.72m",
+        "误差": "6cm",
+        "描述": "抬脚高度有待提高",
+        "建议": null
+      }
+    },
+    "suggestions": [
+      "左腿整体表现中等，建议加强柔韧性和力量训练"
+    ]
+  },
+  "综合评分": 85
+}

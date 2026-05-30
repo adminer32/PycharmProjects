@@ -1,0 +1,6 @@
+{
+  "secret": "mW!F6e?xud#Jq_9.oh&$Zn%HXiQ5L#1Jh9!<$,lcjwL4lfs6c5rzo6Cw*Lq?-q%uOiNDw+WTAgZy:q0z*gnA1&i<rPWi%m;d*z4JAH-RflLzh.|k#Y,p8Y!d-xRd89Mk",
+  "expiration_time": 14400,
+  "refresh_expiration_time": 604800,
+  "algorithm": "HS512"
+}

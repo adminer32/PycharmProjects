@@ -1,0 +1,5 @@
+{
+    "api_url": "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+    "site_key": "0x4AAAAAACnZeg6FC4BIKEhA",
+    "secret_key": "0x4AAAAAACnZeukDlm-h3c7U6NeJVlLPAbU"
+}

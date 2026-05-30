@@ -1,0 +1,79 @@
+@use 'sass:map';
+@use 'sass:list';
+@use 'sass:meta';
+@forward 'variable';
+
+$home-horizontal-padding: 70px;
+$header-height: 70px;
+$border-radius: 10px;
+$box-shadow: 0 0 20px #0000001a;
+$gap: 15px;
+
+// ———————————————————————————————— 媒介查询 ————————————————————————————————
+$breakpoint: (
+    watch: (
+        0px,
+        319px,
+    ),
+    phone: (
+        320px,
+        480px,
+    ),
+    tablet: (
+        481px,
+        768px,
+    ),
+    notebook: (
+        769px,
+        1024px,
+    ),
+    desktop: (
+        1025px,
+        1200px,
+    ),
+    tv: 1201px,
+);
+
+@mixin useMediaQuery($device, $style) {
+    $bp: map.get($breakpoint, $device);
+    @if meta.type-of($bp) == 'list' {
+        @media (min-width: list.nth($bp, 1)) and (max-width: list.nth($bp, 2)) {
+            @each $property-name, $property-value in $style {
+                $property-name: $property-value;
+            }
+        }
+    } @else {
+        @media (min-width: $bp) {
+            @each $property-name, $property-value in $style {
+                $property-name: $property-value;
+            }
+        }
+    }
+}
+
+// ———————————————————————————————— 主题 ————————————————————————————————
+
+/// 主题“枚举”：只允许这三个值
+$theme-enum: (light, dark);
+
+@mixin useTheme($theme, $style-map) {
+    // 1. 类型校验：必须是 string
+    @if meta.type-of($theme) != "string" {
+        @error "useTheme: $theme 必须是 string，当前传了 #{meta.type-of($theme)}";
+    }
+
+    // 2. 枚举校验：必须在白名单里
+    @if not list.index($theme-enum, $theme) {
+        @error "useTheme: $theme 不是合法主题，只能为 #{ $theme-enum }";
+    }
+
+    @if meta.type-of($style-map) != "map" {
+        @error "useTheme: $style-map 必须是 map，当前传了 #{meta.type-of($style-map)}";
+    }
+
+    html[data-theme='#{$theme}'] & {
+        @each $property-name, $property-value in $style-map {
+            #{$property-name}: $property-value;
+        }
+    }
+}

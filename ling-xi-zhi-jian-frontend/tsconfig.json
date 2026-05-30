@@ -1,0 +1,57 @@
+/* tsconfig.json */
+{
+  /* 1. 先继承 Vue 的浏览器推荐 */
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  /* 2. 包含所有需要编译的文件 */
+  "include": [
+    "env.d.ts",
+    "src/**/*",
+    "src/**/*.vue",
+    "vite.config.ts",
+    "eslint.config.ts",
+    "prettier.config.ts"
+  ],
+  /* 3. 排除测试快照等 */
+  "exclude": [
+    "src/**/__tests__/*"
+  ],
+  /* 4. 统一的编译选项 */
+  "compilerOptions": {
+    /* ---- 基本选项 ---- */
+    "target": "ES2022",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    /* ---- 路径映射 ---- */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    /* ---- 增量编译 ---- */
+    "composite": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
+    /* ---- 类型声明 ---- */
+    "types": [
+      "node",
+      "vite/client"
+    ],
+    // node 用于构建脚本，vite/client 用于 import.meta.env
+
+    /* ---- 严格检查 ---- */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    /* ---- 不输出 JS，仅做类型检查 ---- */
+    "noEmit": true
+  }
+}

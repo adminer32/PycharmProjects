@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.service.learning.mapper.LearningMapper">
+
+    <!-- 班级概览统计 -->
+    <select id="getClassOverview" resultType="java.util.Map">
+        SELECT
+            (SELECT COUNT(*) FROM student_profile WHERE class_id = #{classId}) as totalStudents,
+            (SELECT COUNT(DISTINCT student_id) FROM ai_training_plans WHERE class_id = CAST(#{classId} AS UNSIGNED) AND review_status = '待定') as pendingReviewCount,
+            (SELECT
+                CASE
+                    WHEN cnt = 0 THEN 0
+                    ELSE ROUND(approved * 100.0 / cnt)
+                END
+                FROM (
+                    SELECT COUNT(DISTINCT student_id) as cnt,
+                           COUNT(DISTINCT CASE WHEN review_status = '批准' AND progress >= 100 THEN student_id END) as approved
+                    FROM ai_training_plans WHERE class_id = CAST(#{classId} AS UNSIGNED)
+                ) t
+            ) as completionRate,
+            (SELECT COUNT(*)
+                FROM (
+                    SELECT ss.student_id
+                    FROM shuttlecock_skills ss
+                    JOIN student_profile sp ON ss.student_id = sp.id
+                    WHERE sp.class_id = #{classId} AND ss.personal_score &lt; 70
+                    GROUP BY ss.student_id
+                    HAVING COUNT(*) >= 2
+                    UNION
+                    SELECT atp.student_id
+                    FROM ai_training_plans atp
+                    WHERE atp.class_id = CAST(#{classId} AS UNSIGNED) AND atp.progress &lt; 60 AND atp.review_status != '待定'
+                ) t
+            ) as needAttentionCount
+    </select>
+
+    <!-- 重点关注学生：薄弱项≥2 个 或 进度&lt;60% -->
+    <select id="getNeedAttentionStudents" resultType="com.system.service.learning.vo.LearningVO$NeedAttentionStudent">
+        SELECT t.id, t.real_name as name, t.reason FROM (
+            -- 分支 1：薄弱项≥2 的学生
+            SELECT
+                sp.id, sp.real_name,
+                CONCAT(COUNT(ss.skill_type), '项动作薄弱(', GROUP_CONCAT(ss.skill_type SEPARATOR '、'), ')') as reason,
+                1 as sort_order
+            FROM student_profile sp
+            INNER JOIN shuttlecock_skills ss ON ss.student_id = sp.id
+            WHERE sp.class_id = #{classId}
+              AND ss.personal_score &lt; 70
+            GROUP BY sp.id, sp.real_name
+            HAVING COUNT(ss.skill_type) >= 2
+
+            UNION
+
+            -- 分支 2：进度&lt;60%且已有计划的学生（排除已在分支 1 中的）
+            SELECT
+                sp.id, sp.real_name,
+                CONCAT('训练进度仅', atp.progress, '%') as reason,
+                2 as sort_order
+            FROM student_profile sp
+            INNER JOIN ai_training_plans atp ON atp.student_id = sp.id
+            WHERE sp.class_id = #{classId}
+              AND atp.progress &lt; 60
+              AND atp.review_status != '待定'
+              AND atp.class_id = CAST(#{classId} AS UNSIGNED)
+              AND sp.id NOT IN (
+                  SELECT ssp.id FROM student_profile ssp
+                  INNER JOIN shuttlecock_skills sss ON sss.student_id = ssp.id
+                  WHERE ssp.class_id = #{classId} AND sss.personal_score &lt; 70
+                  GROUP BY ssp.id HAVING COUNT(sss.skill_type) >= 2
+              )
+        ) t
+        ORDER BY t.sort_order, t.id
+        LIMIT 3
+    </select>
+
+    <!-- 学生列表：含计划状态、薄弱项、进度 -->
+    <select id="getStudentList" resultType="com.system.service.learning.vo.LearningVO$StudentInfo">
+        SELECT
+            sp.id,
+            sp.real_name as name,
+            sp.student_id as studentId,
+            COALESCE(atp.planStatus, 'pending') as planStatus,
+            COALESCE(weak_list, '') as weakness,
+            COALESCE(atp.progress, 0) as progress
+        FROM student_profile sp
+        LEFT JOIN (
+            SELECT
+                student_id,
+                CASE
+                    WHEN review_status = '待定' THEN 'pending'
+                    WHEN review_status = '批准' AND progress >= 100 THEN 'completed'
+                    ELSE 'progress'
+                END as planStatus,
+                progress
+            FROM ai_training_plans
+            WHERE class_id = CAST(#{classId} AS UNSIGNED)
+              AND id = (
+                  SELECT MAX(sub.id) 
+                  FROM ai_training_plans sub 
+                  WHERE sub.student_id = ai_training_plans.student_id
+                    AND sub.class_id = CAST(#{classId} AS UNSIGNED)
+              )
+        ) atp ON atp.student_id = sp.id
+        LEFT JOIN (
+            SELECT
+                student_id,
+                GROUP_CONCAT(skill_type SEPARATOR ',') as weak_list
+            FROM shuttlecock_skills
+            WHERE personal_score &lt; 70
+            GROUP BY student_id
+        ) ss ON ss.student_id = sp.id
+        WHERE sp.class_id = #{classId}
+          AND (#{keyword} IS NULL OR #{keyword} = '' OR sp.real_name LIKE CONCAT('%', #{keyword}, '%') OR sp.student_id LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY sp.id
+    </select>
+
+    <select id="getPlanByStudentId" resultType="com.system.service.learning.vo.LearningVO$PlanDetail">
+        SELECT
+            id,
+            goal,
+            tasks as tasksJson,
+            progress,
+            CASE review_status
+                WHEN '待定' THEN 'pending'
+                WHEN '批准' THEN 'approved'
+                WHEN '驳回' THEN 'rejected'
+            END as reviewStatus,
+            review_comment as reviewComment,
+            DATE_FORMAT(created_at, '%Y-%m-%d %H:%i') as generatedAt
+        FROM ai_training_plans
+        WHERE student_id = #{studentId}
+        LIMIT 1
+    </select>
+
+    <update id="updatePlanReview">
+        UPDATE ai_training_plans
+        SET review_status = #{status},
+            reviewer_id = #{reviewerId},
+            reviewed_at = NOW(),
+            review_comment = #{comment}
+        WHERE id = #{planId}
+    </update>
+
+    <!-- 获取学生当前周计划（本周） -->
+    <select id="getCurrentWeekPlan" resultType="com.system.service.learning.vo.LearningVO$PlanDetail">
+        SELECT
+            id,
+            goal,
+            tasks as tasksJson,
+            progress,
+            COALESCE(week_number, 1) as weekNumber,
+            COALESCE(total_weeks, 1) as totalWeeks,
+            full_plan_json as fullPlanJson,
+            CASE review_status
+                WHEN '待定' THEN 'pending'
+                WHEN '批准' THEN 'approved'
+                WHEN '驳回' THEN 'rejected'
+            END as reviewStatus,
+            review_comment as reviewComment,
+            CASE
+                WHEN week_start_date IS NOT NULL AND week_start_date != '0000-00-00' THEN DATE_FORMAT(week_start_date, '%Y-%m-%d')
+                ELSE DATE_FORMAT(created_at, '%Y-%m-%d')
+            END as weekStart,
+            CASE
+                WHEN week_end_date IS NOT NULL AND week_end_date != '0000-00-00' THEN DATE_FORMAT(week_end_date, '%Y-%m-%d')
+                ELSE DATE_FORMAT(DATE_ADD(created_at, INTERVAL 6 DAY), '%Y-%m-%d')
+            END as weekEnd,
+            DATE_FORMAT(created_at, '%Y-%m-%d %H:%i') as generatedAt
+        FROM ai_training_plans
+        WHERE student_id = #{studentId}
+          AND (
+              (week_start_date IS NOT NULL AND week_start_date != '0000-00-00'
+               AND week_start_date &lt;= CURDATE()
+               AND week_end_date >= CURDATE())
+              OR (week_start_date IS NULL OR week_start_date = '0000-00-00')
+          )
+        ORDER BY
+            CASE WHEN week_start_date IS NOT NULL AND week_start_date != '0000-00-00' THEN 0 ELSE 1 END,
+            week_number ASC
+        LIMIT 1
+    </select>
+
+    <!-- 获取学生指定周的计划 -->
+    <select id="getWeekPlanByNumber" resultType="com.system.service.learning.vo.LearningVO$PlanDetail">
+        SELECT
+            id,
+            goal,
+            tasks as tasksJson,
+            progress,
+            COALESCE(week_number, 1) as weekNumber,
+            COALESCE(total_weeks, 1) as totalWeeks,
+            full_plan_json as fullPlanJson,
+            CASE review_status
+                WHEN '待定' THEN 'pending'
+                WHEN '批准' THEN 'approved'
+                WHEN '驳回' THEN 'rejected'
+            END as reviewStatus,
+            review_comment as reviewComment,
+            CASE
+                WHEN week_start_date IS NOT NULL AND week_start_date != '0000-00-00' THEN DATE_FORMAT(week_start_date, '%Y-%m-%d')
+                ELSE DATE_FORMAT(created_at, '%Y-%m-%d')
+            END as weekStart,
+            CASE
+                WHEN week_end_date IS NOT NULL AND week_end_date != '0000-00-00' THEN DATE_FORMAT(week_end_date, '%Y-%m-%d')
+                ELSE DATE_FORMAT(DATE_ADD(created_at, INTERVAL 6 DAY), '%Y-%m-%d')
+            END as weekEnd,
+            DATE_FORMAT(created_at, '%Y-%m-%d %H:%i') as generatedAt
+        FROM ai_training_plans
+        WHERE student_id = #{studentId}
+          AND (week_number = #{weekNumber} OR (week_number IS NULL AND #{weekNumber} = 1))
+        LIMIT 1
+    </select>
+
+    <!-- 获取学生所有周计划（用于历史查看） -->
+    <select id="getStudentAllPlans" resultType="java.util.Map">
+        SELECT
+            id,
+            week_number as weekNumber,
+            total_weeks as totalWeeks,
+            goal,
+            week_start_date as weekStart,
+            week_end_date as weekEnd,
+            progress,
+            CASE review_status
+                WHEN '待定' THEN 'pending'
+                WHEN '批准' THEN 'approved'
+                WHEN '驳回' THEN 'rejected'
+            END as reviewStatus,
+            full_plan_json as fullPlanJson,
+            DATE_FORMAT(created_at, '%Y-%m-%d %H:%i') as createdAt
+        FROM ai_training_plans
+        WHERE student_id = #{studentId}
+        ORDER BY week_start_date DESC, week_number ASC
+    </select>
+
+    <!-- 获取学生的计划组列表（按创建时间分组） -->
+    <select id="getStudentPlanGroups" resultType="java.util.Map">
+        SELECT
+            MIN(id) as planGroupId,
+            student_id as studentId,
+            total_weeks as totalWeeks,
+            MIN(goal) as overallGoal,
+            MIN(created_at) as createdAt,
+            COUNT(*) as weekCount,
+            GROUP_CONCAT(DISTINCT week_number ORDER BY week_number) as weekNumbers,
+            SUM(CASE WHEN review_status = '批准' THEN 1 ELSE 0 END) as approvedCount,
+            SUM(CASE WHEN review_status = '待定' THEN 1 ELSE 0 END) as pendingCount
+        FROM ai_training_plans
+        WHERE student_id = #{studentId}
+        GROUP BY student_id, total_weeks, DATE_FORMAT(created_at, '%Y-%m')
+        ORDER BY createdAt DESC
+    </select>
+
+    <!-- 批量插入周计划 -->
+    <insert id="batchInsertWeeklyPlans" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_training_plans (
+            student_id, class_id, goal, tasks, progress,
+            review_status, week_start_date, week_end_date,
+            week_number, total_weeks, full_plan_json, plan_source
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.studentId}, #{item.classId}, #{item.goal},
+                #{item.tasks}, 0, '待定',
+                #{item.weekStartDate}, #{item.weekEndDate},
+                #{item.weekNumber}, #{item.totalWeeks},
+                #{item.fullPlanJson}, 'ai'
+            )
+        </foreach>
+    </insert>
+
+    <!-- 删除某学生的某个计划组 -->
+    <delete id="deletePlanGroup">
+        DELETE FROM ai_training_plans
+        WHERE student_id = #{studentId}
+          AND created_at >= (SELECT MIN(sub.created_at) FROM (
+              SELECT created_at FROM ai_training_plans WHERE id = #{planGroupId} AND student_id = #{studentId}
+          ) sub)
+          AND created_at &lt;= (SELECT MAX(sub.created_at) FROM (
+              SELECT created_at FROM ai_training_plans WHERE id = #{planGroupId} AND student_id = #{studentId}
+          ) sub)
+    </delete>
+
+    <!-- 删除某学生的所有计划（重新生成时先清空） -->
+    <delete id="deleteStudentPlans">
+        DELETE FROM ai_training_plans
+        WHERE student_id = #{studentId}
+    </delete>
+
+</mapper>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>账户激活</title>
+<style>
+  * {
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+  }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  .parallax-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: linear-gradient(145deg,#7494EC 20%, #1f82e6  80%);
+    overflow: hidden;
+  }
+  .bg-shape {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 50%;
+    filter: blur(60px);
+  }
+  .shape-1 {
+    width: 500px; height: 500px; left: -100px; top: 10%;
+    background: rgba(59, 91, 165, 0.15);
+  }
+  .shape-2 {
+    width: 700px; height: 700px; right: -200px; bottom: 0%;
+    background: rgba(37, 99, 235, 0.08);
+  }
+  .shape-3 {
+    width: 400px; height: 400px; left: 30%; top: 60%;
+    background: rgba(165, 195, 255, 0.06);
+  }
+  .container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: 0 25px 50px -12px rgba(0, 20, 40, 0.25);
+  }
+  h1 {
+    color: #ffffff;
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  p {
+    color: #ffffff;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  a {
+    color: #ffffff;
+    text-decoration: none;
+  }
+  .btn {
+    display: inline-block;
+    margin-top: 25px;
+    padding: 12px 25px;
+    font-size: 16px;
+    color: #1e3a8a;
+    background-color: #ffffff;
+    border-radius: 9999px;
+    text-decoration: none;
+    box-shadow: 0 25px 50px -12px rgba(0, 20, 40, 0.25);
+    transition: all 0.3s;
+  }
+  .btn:hover {
+    background: rgba(255,255,255,0.9);
+    transform: translateY(-4px);
+    box-shadow: 0 25px 30px -8px rgba(0,0,0,0.4);
+  }
+  .footer {
+    margin-top: 35px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: end;
+  }
+</style>
+</head>
+<body>
+  <div class="parallax-bg">
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+    <div class="bg-shape shape-3"></div>
+  </div>
+  <div class="container">
+    <h1>账户激活通知</h1>
+    <p>同学您好，</p>
+    <p>感谢您在 <strong>毽·翼教学平台</strong> 注册账户。请点击下方激活按钮完善个人信息，激活账户</p>
+    <p style="text-align:center;">
+      <a href="{{ACTIVATION_LINK}}" class="btn">激活账户</a>
+    </p>
+    <p style="margin-top: 35px; text-align: center;">如果您没有发起此注册请求，请忽略此邮件。</p>
+    <div class="footer">
+      &copy; 2026 darkdomain.space. 保留所有权利。
+    </div>
+  </div>
+</body>
+</html>

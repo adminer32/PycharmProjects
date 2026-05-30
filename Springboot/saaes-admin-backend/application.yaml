@@ -1,0 +1,64 @@
+sys:
+  auth:
+    tokenHeaderName: auth-token
+    internalSecret: saaes-secret-key # 内部接口调用的密钥
+server:
+  port: ${SERVER_PORT:9002}
+spring:
+  application:
+    name: system
+  web:
+    allowedOriginPatterns:
+      - http://localhost:**
+      - http://10.96.**
+    resources:
+      static-locations: file:resources/uploads/
+  mvc:
+    static-path-pattern: /files/**
+  datasource:
+    first:
+      url: jdbc:mysql://192.168.1.2:3306/saaes_admin?characterEncoding=utf-8
+      username: 翎翼毽球教学平台
+      password: kXnXWMy38c2AkLFj
+      configuration:
+        maximum-pool-size: 20
+    second:
+      url: jdbc:postgresql://localhost:5432/saaes_admin
+      username: postgres
+      password: 123456
+      configuration:
+        maximum-pool-size: 20
+  data:
+    redis:
+      host: 192.168.1.2
+      port: 6379
+      database: 0
+      timeout: 60000
+      lettuce:
+        cluster:
+          refresh:
+            adaptive: true
+            period: 20
+      password: kXnXWMy38c2AkLFj
+  servlet:
+    multipart:
+      max-file-size: 1024MB
+      max-request-size: 1024MB
+  devtools:
+    livereload:
+      enabled: true
+
+mybatis-plus:
+  mapper-locations: classpath*:/mappers/**/*.xml
+  typeAliasesPackage: com.saaes.system.client.entity
+  typeHandlersPackage: com.saaes.system.client.handler
+  global-config:
+    db-config:
+      id-type: auto # 主键策略
+
+# 自定义任务配置
+task:
+  cleanup:
+    cron: "0 0 4 * * ?"
+    retention-days: 30
+    reminder-read-retention-days: 7

@@ -1,0 +1,39 @@
+{
+  "server_addr": ":8001",
+  "video_base_path": "/home/mrliao/下载/GVHMR/InputVideo/视频",
+  "uploads_path": "./data/uploads",
+  "database": {
+    "host": "192.168.1.2",
+    "port": "3306",
+    "user": "root",
+    "password": "",
+    "db_name": "aiidecn",
+    "charset": "utf8mb4"
+  },
+  "redis": {
+    "host": "127.0.0.1",
+    "port": "6379",
+    "password": "",
+    "db": 0
+  },
+  "jwt": {
+    "secret": "replace-me-with-secure-secret",
+    "access_expiry": 14400,
+    "refresh_expiry": 604800
+  },
+  "deepseek": {
+    "api_key": "sk-your-deepseek-api-key",
+    "base_url": "https://api.deepseek.com/v1",
+    "model": "deepseek-chat"
+  },
+  "dashscope": {
+    "api_key": "sk-your-dashscope-api-key"
+  },
+  "sendgrid": {
+    "api_key": ""
+  },
+  "cloudflare_turnstile": {
+    "site_key": "",
+    "secret_key": ""
+  }
+}

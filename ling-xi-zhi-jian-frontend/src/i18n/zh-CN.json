@@ -1,0 +1,125 @@
+{
+    "locale": {
+        "en": "English",
+        "zh-CN": "简体中文"
+    },
+    "theme": {
+        "auto": "系统主题",
+        "light": "亮色主题",
+        "dark": "暗色主题"
+    },
+    "site": {
+        "title": "翎翼· 毽球"
+    },
+    "course_center_view": {
+        "title": "课程中心"
+    },
+    "personal_homepage_view": {
+        "title": "个人主页"
+    },
+    "home_view": {
+        "title": "首页"
+    },
+    "smart_class_view": {
+      "title": "智慧课堂"
+    },
+    "motion_analysis_view": {
+        "title": "动作分析"
+    },
+    "curriculum_center": {
+        "title": "学习伴侣"
+    },
+    "motion_demo_view": {
+        "title": "动作演示"
+    },
+    "personal_assessment_view": {
+        "title": "个人评估"
+    },
+    "motion_assessment_view": {
+        "title": "个人分析"
+    },
+    "personal_analysis_view": {
+        "title": "个人分析"
+    },
+    "login_view": {
+        "title": "登录",
+        "existing_account": "已有账号",
+        "register_immediately": "立即注册",
+        "login": {
+            "username": "用户名",
+            "password": "密码",
+            "remember": "记住我",
+            "captcha": "验证码",
+            "btn": "登录"
+        },
+        "register": {
+            "username": "用户名",
+            "password": "密码",
+            "confirm_password": "确认密码",
+            "btn": "注册"
+        },
+        "other_login_methods": "其他登录方式",
+        "password_inconsistency": "密码不一致",
+        "password_cannot_be_empty": "密码不能为空",
+        "captcha_cannot_be_empty": "验证码不能为空",
+        "username_cannot_be_empty": "用户名不能为空"
+    },
+    "my": {
+        "title": "我的",
+        "setting": "设置"
+    },
+    "ai_learn_friend_view": {
+        "title": "AI学习伴侣"
+    },
+    "ai_class_view": {
+        "title": "智能课堂"
+    },
+    "class_replay_view": {
+        "title": "课堂回放"
+    },
+    "motion_demo": {
+        "title": "3D动作演示"
+    },
+    "setting": {
+        "title": "设置",
+        "language": "语言",
+        "logout": "退出登录",
+        "logout-confirm": "确定退出？"
+    },
+    "index": {
+        "language-change-confirm": "应用此设置将重启App"
+    },
+    "footer": {
+        "aboutUs": "关于我们",
+        "contactUs": "联系我们",
+        "joinUs": "加入我们",
+        "feedback": "意见反馈",
+        "privacyPolicy": "隐私政策",
+        "termsOfUse": "使用条款",
+        "helpCenter": "帮助中心",
+        "popularLinks": "热门链接",
+        "home": "首页",
+        "news": "新闻",
+        "competitions": "比赛",
+        "videos": "视频",
+        "community": "社区",
+        "store": "商城",
+        "followUs": "关注我们",
+        "weibo": "微博",
+        "douyin": "抖音",
+        "bilibili": "B站",
+        "zhihu": "知乎",
+        "appDownloadQRCode": "App 下载二维码",
+        "appDownload": "App 下载",
+        "wechatMiniProgramQRCode": "微信小程序二维码",
+        "wechatMiniProgram": "微信小程序",
+        "weiboQRCode": "微博二维码",
+        "douyinQRCode": "抖音二维码",
+        "contactUsTitle": "联系我们",
+        "email": "邮箱",
+        "phone": "电话",
+        "address": "地址",
+        "addressDetail": "浙江省杭州市西湖区文三路123号",
+        "copyright": "© 2025 《翎翼毽球》毽球教学平台 版权所有"
+    }
+}

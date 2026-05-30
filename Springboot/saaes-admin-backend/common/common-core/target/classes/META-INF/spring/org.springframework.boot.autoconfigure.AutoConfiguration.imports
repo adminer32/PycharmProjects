@@ -1,0 +1,9 @@
+com.saaes.common.core.configuration.WebConfig
+com.saaes.common.core.configuration.MyControllerAdvice
+com.saaes.common.core.configuration.MyInterceptor
+com.saaes.common.core.configuration.MyFilter
+com.saaes.common.core.configuration.SaTokenConfigure
+com.saaes.common.core.configuration.StpInterfaceImpl
+com.saaes.common.core.dao.BaseJdbcDaoImpl
+com.saaes.common.core.service.BaseServiceImpl
+com.saaes.common.core.service.CommonService

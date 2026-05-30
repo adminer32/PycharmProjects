@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saaes.system.mapper.AIAnalysisInfoMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_analysis_result
+        (overall_score, stability_score, fluency_score, proficiency_score,
+         stability_improvement, proficiency_enhancement, fluency_promotion,
+         general_advice, self_left_x_data, self_left_y_data,
+         self_right_x_data, self_right_y_data, motion_name, video_url,
+         task_id, create_time, update_time, create_by, update_by, deleted)
+        VALUES
+            (#{overallScore}, #{stabilityScore}, #{fluencyScore}, #{proficiencyScore},
+             #{stabilityImprovement}, #{proficiencyEnhancement}, #{fluencyPromotion},
+             #{generalAdvice}, #{selfLeftXData}, #{selfLeftYData},
+             #{selfRightXData}, #{selfRightYData}, #{motionName}, #{videoUrl},
+             #{taskId}, #{createTime}, #{updateTime}, #{createBy}, #{updateBy}, #{deleted})
+    </insert>
+
+</mapper>

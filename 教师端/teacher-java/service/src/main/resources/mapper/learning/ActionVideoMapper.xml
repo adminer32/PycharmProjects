@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.service.learning.mapper.ActionVideoMapper">
+
+    <select id="getVideoList" resultType="com.system.service.learning.vo.ActionVideoVO$VideoInfo">
+        SELECT
+            v.id,
+            v.title,
+            v.url,
+            v.duration,
+            v.category,
+            v.description,
+            GROUP_CONCAT(DISTINCT r.student_id) as recommendedToStr
+        FROM teacher_action_videos v
+        LEFT JOIN teacher_action_video_recommendations r ON r.video_id = v.id
+        <where>
+            <if test="classId != null and classId != ''">
+                AND v.class_id = CAST(#{classId} AS UNSIGNED)
+            </if>
+            <if test="category != null and category != ''">
+                AND v.category = #{category}
+            </if>
+        </where>
+        GROUP BY v.id, v.title, v.url, v.duration, v.category, v.description
+        ORDER BY v.created_at DESC
+    </select>
+
+    <insert id="insertActionVideo" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO teacher_action_videos (title, url, duration, category, description, teacher_id, class_id, created_at, updated_at)
+        VALUES (#{title}, #{url}, #{duration}, #{category}, #{description}, #{teacherId}, #{classId}, NOW(), NOW())
+    </insert>
+
+    <insert id="insertRecommendation">
+        INSERT INTO teacher_action_video_recommendations (video_id, student_id, teacher_id, comment, created_at)
+        VALUES (#{videoId}, #{studentId}, #{teacherId}, #{comment}, NOW())
+    </insert>
+
+</mapper>

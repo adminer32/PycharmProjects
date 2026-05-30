@@ -1,0 +1,58 @@
+{
+  "database": {
+    "host": "192.168.1.2",
+    "port": 3306,
+    "user": "翎翼毽球教学平台",
+    "password": "kXnXWMy38c2AkLFj",
+    "database": "aiidecn",
+    "charset": "utf8mb4"
+  },
+  "tables": {
+    "users": {
+      "name": "users",
+      "columns": [
+        "username",
+        "password_hash",
+        "password_salt",
+        "role",
+        "active"
+      ],
+      "roles": ["ADMIN", "TEACHER", "STUDENT"]
+    },
+    "students": {
+      "name": "student_profile",
+      "columns": [
+        "student_id",
+        "real_name",
+        "gender",
+        "grade",
+        "major",
+        "class_id",
+        "email",
+        "avatar"
+      ]
+    },
+    "student_physique": {
+      "name": "student_physique",
+      "columns": [
+        "student_id",
+        "weight",
+        "bmi",
+        "fat_percentage",
+        "skeletal_muscle_mass",
+        "visceral_fat_level",
+        "limb_skeletal_muscle_index",
+        "estimated_waist_hip_ratio",
+        "body_type",
+        "body_shape",
+        "basal_metabolism_rate",
+        "moisture_rate",
+        "bone_salt_amount",
+        "protein_percentage",
+        "lean_body_mass",
+        "body_age",
+        "heart_rate"
+      ]
+    }
+  }
+}

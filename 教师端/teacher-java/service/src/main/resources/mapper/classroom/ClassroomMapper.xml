@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.service.classroom.mapper.ClassroomMapper">
+
+    <select id="getLessonsByClassId" resultType="com.system.service.classroom.vo.ClassroomVO$LessonItem">
+        SELECT
+            tl.id,
+            tl.content as title,
+            COALESCE(tl.preview_image, 'https://via.placeholder.com/320x180/0a66c2/ffffff?text=课程') as thumbnail,
+            COALESCE(tl.video_url, '') as videoUrl,
+            CASE
+                WHEN tl.video_duration > 0 THEN
+                    CONCAT(LPAD(FLOOR(tl.video_duration / 60), 2, '0'), ':', LPAD(tl.video_duration % 60, 2, '0'))
+                ELSE '00:00'
+            END as duration,
+            DATE_FORMAT(tl.created_at, '%Y-%m-%d %H:%i') as recordedAt,
+            c.name as className
+        FROM teacher_lesson tl
+        LEFT JOIN `class` c ON c.id = tl.class_id
+        WHERE tl.class_id = CAST(#{classId} AS UNSIGNED)
+          AND tl.teacher_id = #{teacherId}
+        ORDER BY tl.created_at DESC
+    </select>
+
+    <select id="getKnowledgePointsByLessonId" resultType="com.system.service.classroom.vo.ClassroomVO$KnowledgePointVO">
+        SELECT
+            id,
+            title,
+            description,
+            @rownum := @rownum + 1 as orderNum,
+            (demo_video_url IS NOT NULL AND demo_video_url != '') as hasVideo,
+            COALESCE(demo_video_url, '') as videoUrl,
+            lesson_id as lessonId
+        FROM teacher_knowledge_points, (SELECT @rownum := 0) r
+        WHERE lesson_id = #{lessonId}
+        ORDER BY id ASC
+    </select>
+
+    <select id="getNotesByLessonId" resultType="com.system.service.classroom.vo.ClassroomVO$NoteVO">
+        SELECT
+            id,
+            content,
+            DATE_FORMAT(created_at, '%Y-%m-%d %H:%i') as createdAt,
+            lesson_id as lessonId
+        FROM teacher_classroom_notes
+        WHERE lesson_id = #{lessonId}
+        ORDER BY created_at DESC
+    </select>
+
+    <insert id="insertKnowledgePoint">
+        INSERT INTO teacher_knowledge_points (lesson_id, title, description, demo_video_url, created_at)
+        VALUES (#{input.lessonId}, #{input.title}, #{input.description}, #{input.demoVideoUrl}, NOW())
+    </insert>
+
+    <update id="updateKnowledgeVideo">
+        UPDATE teacher_knowledge_points SET demo_video_url = #{videoUrl} WHERE id = #{id}
+    </update>
+
+    <insert id="insertNote">
+        INSERT INTO teacher_classroom_notes (lesson_id, content, created_at)
+        VALUES (#{input.lessonId}, #{input.content}, NOW())
+    </insert>
+
+    <delete id="deleteNotesByLessonId">
+        DELETE FROM teacher_classroom_notes WHERE lesson_id = #{lessonId}
+    </delete>
+
+    <insert id="insertNoteBatch">
+        INSERT INTO teacher_classroom_notes (lesson_id, content, created_at)
+        VALUES
+        <foreach collection="notes" item="note" separator=",">
+            (#{lessonId}, #{note.content}, NOW())
+        </foreach>
+    </insert>
+
+    <select id="getTotalStudentsByLesson" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT s.id)
+        FROM student s
+        INNER JOIN `class` c ON c.id = s.class_id
+        INNER JOIN teacher_lesson tl ON tl.class_id = c.id
+        WHERE tl.id = #{videoId}
+    </select>
+
+    <select id="getActiveStudentsByLesson" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT s.id)
+        FROM student s
+        INNER JOIN `class` c ON c.id = s.class_id
+        INNER JOIN teacher_lesson tl ON tl.class_id = c.id
+        LEFT JOIN ai_training_plans p ON p.student_id = s.id AND p.lesson_id = tl.id
+        WHERE tl.id = #{videoId}
+          AND (p.id IS NOT NULL OR EXISTS (
+              SELECT 1 FROM shuttlecock_skills ss WHERE ss.student_id = s.id AND ss.updated_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+          ))
+    </select>
+
+</mapper>

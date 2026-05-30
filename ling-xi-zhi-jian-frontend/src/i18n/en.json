@@ -1,0 +1,124 @@
+{
+    "locale": {
+        "en": "English",
+        "zh-CN": "简体中文"
+    },
+    "theme": {
+        "auto": "System theme",
+        "light": "Light theme",
+        "dark": "Dark theme"
+    },
+    "site": {
+        "title": "Lingxi Zhijian"
+    },
+    "home": {
+        "title": "Home"
+    },
+    "course_center_view": {
+        "title": "Course center"
+    },
+    "motion_analysis": {
+        "title": "Motion analysis"
+    },
+    "standard_motion_3d_demo": {
+        "title": "Standard motion 3D demo"
+    },
+    "personal_visualization": {
+        "title": "Personal visualization"
+    },
+    "curriculum_center": {
+        "title": "Curriculum center"
+    },
+    "action_challenge": {
+        "title": "Action challenge"
+    },
+    "login_view": {
+        "title": "Login",
+        "existing_account": "Existing account",
+        "register_immediately": "Register immediately",
+        "login": {
+            "text": "Login",
+            "username": "Username",
+            "password": "Password",
+            "remember": "Remember me",
+            "captcha": "Captcha",
+            "btn": "Login"
+        },
+        "register": {
+            "register": "Register",
+            "username": "Username",
+            "password": "Password",
+            "confirm_password": "Confirm password",
+            "btn": "Register"
+        },
+        "other_login_methods": "Other login methods",
+        "password_inconsistency": "Password inconsistency",
+        "password_cannot_be_empty": "Password cannot be empty",
+        "captcha_cannot_be_empty": "Captcha cannot be empty",
+        "username_cannot_be_empty": "Username cannot be empty"
+    },
+    "my": {
+        "title": "my",
+        "setting": "setting"
+    },
+    "ai_class_view": {
+        "title": "AI Class"
+    },
+    "class_replay_view": {
+        "title": "Class Replay"
+    },
+    "ai": {
+        "title": "AI counselor"
+    },
+    "setting": {
+        "title": "setting",
+        "language": "language",
+        "theme": "theme",
+        "logout": "Logout",
+        "logout-confirm": "Are you sure to logout?"
+    },
+    "personal_analysis_view": {
+        "title": "Personal Analysis"
+    },
+    "index": {
+        "application-language": "Application language",
+        "language-change-confirm": "Applying this setting will restart the app"
+    },
+    "api": {
+        "message": "Message"
+    },
+    "footer": {
+        "aboutUs": "About Us",
+        "contactUs": "Contact Us",
+        "joinUs": "Join Us",
+        "feedback": "Feedback",
+        "privacyPolicy": "Privacy Policy",
+        "termsOfUse": "Terms of Use",
+        "helpCenter": "Help Center",
+        "popularLinks": "Popular Links",
+        "home": "Home",
+        "news": "News",
+        "competitions": "Competitions",
+        "videos": "Videos",
+        "community": "Community",
+        "store": "Store",
+        "followUs": "Follow Us",
+        "weibo": "Weibo",
+        "douyin": "Douyin",
+        "bilibili": "Bilibili",
+        "zhihu": "Zhihu",
+        "appDownloadQRCode": "App Download QR Code",
+        "appDownload": "App Download",
+        "wechatMiniProgramQRCode": "WeChat Mini Program QR Code",
+        "wechatMiniProgram": "WeChat Mini Program",
+        "weiboQRCode": "Weibo QR Code",
+        "douyinQRCode": "Douyin QR Code",
+        "contactUsTitle": "Contact Us",
+        "email": "Email",
+        "phone": "Phone",
+        "address": "Address",
+        "addressDetail": "No. 123, WenSan Road, XiHu District, HangZhou, ZheJiang Province, China",
+        "copyrightRecord": "Record number: ZheICP备19034671号 Value-added telecommunications business license: ZheB2-20220161",
+        "copyright": "© 2023 Website Name All Rights Reserved"
+    }
+}

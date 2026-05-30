@@ -1,0 +1,55 @@
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0; /* 去掉默认 margin */
+        min-height: 100vh; /* 确保 body 高度至少是窗口高度 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: url("/static/images/background.png");
+        background-repeat: no-repeat;
+        background-position: center center; /* 横向纵向都居中 */
+        background-size: cover; /* 保持比例填满，超出裁剪 */
+    }
+</style>
+
+<div id="captcha"></div>
+
+<script type="module">
+    import api from "/static/js/api.js";
+    import { doPost } from "/static/js/requests.js";
+    window.onTurnstileLoad = function () {
+        const params = new URLSearchParams(location.search);
+        const captcha = params.get("captcha");
+
+        turnstile.render("#captcha", {
+            sitekey: "0x4AAAAAACnZeg6FC4BIKEhA",
+
+            callback: async function(token) {
+
+                const payload = {
+                    token: token,
+                    captcha: captcha
+                };
+
+                const data = await doPost(api.public.challenge.token, payload);
+
+                if (window.opener) {
+                    window.opener.postMessage({
+                        type: "captcha-result",
+                        success: data.success
+                    });
+                }
+
+                window.close();
+            }
+        });
+    }
+</script>
+
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad" defer></script>

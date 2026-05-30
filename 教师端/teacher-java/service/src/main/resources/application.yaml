@@ -1,0 +1,90 @@
+server:
+  port: 9002
+
+cloudflare:
+  turnstile:
+    # 填入你在此处网站申请到的 Secret Key: https://dash.cloudflare.com/
+    secret: 1x0000000000000000000000000000000AA
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/aiidecn?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    username: 翎翼毽球教学平台
+    password: kXnXWMy38c2AkLFj
+    configuration:
+      maximum-pool-size: 20
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 1000MB # 单个文件最大1000MB
+      max-request-size: 2000MB # 单次请求最大2000MB
+      location: ./temp/spring-upload # 临时上传目录
+  tomcat:
+    max-http-form-post-size: 2097152000
+    connection-timeout: 600000 # 添加连接超时设置
+    max-swallow-size: 2097152000
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      timeout: 60000
+      lettuce:
+        cluster:
+          refresh:
+            adaptive: true
+            period: 20
+      password: 123456
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+
+springdoc:
+  api-docs:
+    enabled: true # 默认 true，确保开启
+    path: /v3/api-docs # 默认路径，可自定义
+  swagger-ui:
+    enabled: true # 默认 true
+    path: /swagger-ui.html # 默认路径
+
+# Sa-Token 配置
+sa-token:
+  # Token 名称 (对应前端 Header)
+  token-name: auth-token
+  # Token 有效期，单位秒，默认30天 (-1表示永久有效)
+  timeout: 300000
+  # Token 最低活跃频繁度，单位秒，默认-1
+  active-timeout: -1
+  # 是否允许同一账号并发登录 (为true时允许一起登录, 为false时新登录挤掉旧登录)
+  is-concurrent: true
+  # 在多人登录同一账号时，是否共用一个 token (为true时所有登录共用一个token, 为false时每次登录新建一个token)
+  is-share: false
+  # Token 风格
+  token-style: uuid
+  # 是否输出操作日志
+  is-log: false
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+# 文件上传配置
+file:
+  max-size: 1073741824 # 1000MB = 1GB
+
+# 公共文件访问配置（无需认证，用于视频/图片等资源播放）
+public-file:
+  paths:
+    - /home/mrliao/下载/GVHMR/InputVideo/视频
+    - /home/mrliao/PycharmProjects/web/教师端/teacher-java/public
+
+
+# DeepSeek AI 配置
+deepseek:
+  api-key: sk-1031efc88cb84a97910e307c85bfd5f5
+  base-url: https://api.deepseek.com
+  model: deepseek-chat
+  max-tokens: 4096
+  temperature: 0.7

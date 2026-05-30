@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saaes.system.admin.classes.mapper.AdminClassMapper">
+
+    <!-- 班级分页查询 (连表查询老师和等级信息) -->
+    <select id="selectClassPage" resultType="com.saaes.system.admin.classes.vo.AdminClassVO">
+        SELECT
+        c.*,
+        u.name as teacher_name,
+        l.level_name as level_name,
+        (SELECT COUNT(*) FROM class_students cs WHERE cs.class_id = c.id AND cs.deleted = 0) AS student_count
+        FROM sys_class c
+        LEFT JOIN sys_user u ON c.teacher_id = u.id
+        LEFT JOIN level_info l ON c.level_id = l.level_id
+        <where>
+            c.deleted = 0
+            <if test="ew != null and ew.sqlSegment != null and ew.sqlSegment != ''">
+                AND ${ew.sqlSegment}
+            </if>
+        </where>
+    </select>
+
+    <!-- 班级详情查询 -->
+    <select id="selectClassDetail" resultType="com.saaes.system.admin.classes.vo.AdminClassVO">
+        SELECT
+            c.*,
+            u.name as teacher_name,
+            l.level_name as level_name,
+            (SELECT COUNT(*) FROM class_students cs WHERE cs.class_id = c.id AND cs.deleted = false) as student_count
+        FROM sys_class c
+                 LEFT JOIN sys_user u ON c.teacher_id = u.id
+                 LEFT JOIN level_info l ON c.level_id = l.level_id
+        WHERE c.id = #{id} AND c.deleted = false
+    </select>
+
+    <!-- 查询已删除的班级 (回收站) -->
+    <select id="selectDeletedPage" resultType="com.saaes.system.admin.classes.vo.AdminClassVO">
+        SELECT
+        c.*,
+        u.name as teacher_name,
+        l.level_name as level_name,
+        (SELECT COUNT(*) FROM class_students cs WHERE cs.class_id = c.id) as student_count
+        FROM sys_class c
+        LEFT JOIN sys_user u ON c.teacher_id = u.id
+        LEFT JOIN level_info l ON c.level_id = l.level_id
+        <where>
+            c.deleted = true
+            <if test="ew != null and ew.sqlSegment != null and ew.sqlSegment != ''">
+                <if test="ew.nonEmptyOfWhere">
+                    AND
+                </if>
+                ${ew.sqlSegment}
+            </if>
+        </where>
+    </select>
+
+    <!-- 物理删除过期的逻辑删除数据 -->
+    <delete id="deleteHardExpired">
+        DELETE FROM sys_class WHERE deleted = true AND update_time &lt; #{threshold}
+    </delete>
+
+    <!-- 恢复已删除数据 -->
+    <update id="restoreByIds">
+        UPDATE sys_class SET deleted = false, update_time = NOW()
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>

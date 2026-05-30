@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.service.ai.mapper.AiMapper">
+
+    <select id="getStudentBasicInfo" resultType="map">
+        SELECT sp.real_name as name,
+               CASE
+                   WHEN AVG(ss.personal_score) >= 85 THEN '高级'
+                   WHEN AVG(ss.personal_score) >= 70 THEN '中级'
+                   ELSE '初级'
+               END as level,
+               '提升毽球综合技能' as goal
+        FROM users u
+                 INNER JOIN student_profile sp ON sp.id = u.id
+                 LEFT JOIN shuttlecock_skills ss ON ss.student_id = u.id
+        WHERE u.id = #{studentId}
+          AND u.role = 'STUDENT'
+        GROUP BY u.id, sp.real_name
+    </select>
+
+    <select id="getStudentWeakness" resultType="map">
+        SELECT skill_type,
+               ROUND(personal_score, 1) as personal_score,
+               ROUND(class_avg_score, 1) as class_avg_score
+        FROM shuttlecock_skills
+        WHERE student_id = #{studentId}
+          AND personal_score &lt; 75
+        ORDER BY personal_score ASC
+        LIMIT 5
+    </select>
+
+    <select id="getStudentRecentActivity" resultType="map">
+        SELECT DATE_FORMAT(created_at, '%Y-%m-%d') as date,
+               action_type,
+               JSON_UNQUOTE(JSON_EXTRACT(result_data, '$.score')) as score
+        FROM practice_records
+        WHERE student_id = #{studentId}
+          AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ORDER BY created_at DESC
+        LIMIT 10
+    </select>
+
+</mapper>

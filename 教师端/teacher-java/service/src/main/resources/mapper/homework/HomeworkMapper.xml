@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.service.homework.mapper.HomeworkMapper">
+
+    <!-- 统计班级学生人数 -->
+    <select id="countClassStudents" resultType="int">
+        SELECT COUNT(*)
+        FROM student_profile
+        WHERE class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+    </select>
+
+    <!-- 统计教师管理的所有学生总数 (去重) -->
+    <select id="countAllStudentsByTeacher" resultType="int">
+        SELECT COUNT(DISTINCT sp.id)
+        FROM student_profile sp
+        JOIN `class` c ON sp.class_id = CONVERT(c.id, CHAR) COLLATE utf8mb4_unicode_ci
+        WHERE c.teacher_id = #{teacherId}
+    </select>
+
+    <!-- 根据作业ID统计提交人数 -->
+    <select id="countSubmissionsByHomeworkId" resultType="int">
+        SELECT COUNT(*)
+        FROM teacher_homework_submission
+        WHERE homework_id = #{homeworkId}
+    </select>
+
+    <!-- 统计待批改人数 (作业已提交且未评分或评分状态为0) -->
+    <select id="countPendingGrades" resultType="int">
+        SELECT COUNT(*)
+        FROM teacher_homework_submission hs
+        LEFT JOIN teacher_homework_feedback hf ON hs.id = hf.submission_id
+        WHERE hs.homework_id = #{homeworkId} AND (hf.id IS NULL OR hf.status = 0)
+    </select>
+
+    <!-- 计算班级作业平均分 -->
+    <select id="calculateAverageScore" resultType="java.math.BigDecimal">
+        SELECT AVG(teacher_score)
+        FROM teacher_homework_feedback
+        WHERE homework_id = #{homeworkId} AND teacher_score IS NOT NULL
+    </select>
+
+    <!-- 获取单个学生的展示信息 (修正为使用系统主键ID) -->
+    <select id="getStudentInfo" resultType="com.system.service.homework.vo.SubmissionVO$StudentInfo">
+        SELECT 
+            u.id as studentId, 
+            sp.real_name as studentName, 
+            sp.avatar as studentAvatar, 
+            u.username as studentAccount
+        FROM users u
+        LEFT JOIN student_profile sp ON sp.id = u.id
+        WHERE u.id = #{studentId}
+    </select>
+
+    <!-- 获取班级所有学生列表 -->
+    <select id="getClassStudents" resultType="com.system.service.homework.vo.SubmissionVO$StudentInfo">
+        SELECT 
+            sp.id as studentId, 
+            sp.real_name as studentName, 
+            sp.avatar as studentAvatar
+        FROM student_profile sp
+        WHERE sp.class_id = CONVERT(#{classId}, CHAR) COLLATE utf8mb4_unicode_ci
+    </select>
+
+    <!-- 获取教师名下所有班级的学生列表 (去重) -->
+    <select id="getAllTeacherStudents" resultType="com.system.service.homework.vo.SubmissionVO$StudentInfo">
+        SELECT DISTINCT 
+            sp.id as studentId, 
+            sp.real_name as studentName, 
+            sp.avatar as studentAvatar
+        FROM student_profile sp
+        JOIN `class` c ON sp.class_id = CONVERT(c.id, CHAR) COLLATE utf8mb4_unicode_ci
+        WHERE c.teacher_id = #{teacherId}
+    </select>
+
+</mapper>
